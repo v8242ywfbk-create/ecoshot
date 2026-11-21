@@ -1,4 +1,4 @@
-# EcoShot
+# EchoShot
 
 Foto-App im Browser mit Sprachsteuerung. Sag „Mache ein Foto in 5 Sekunden“, dann zählt ein Countdown herunter und die Kamera löst aus.
 

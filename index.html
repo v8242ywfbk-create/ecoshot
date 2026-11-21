@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f4fbf7">
-<title>EcoShot</title>
+<title>EchoShot</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700&display=swap">
 <style>
   :root{
@@ -96,8 +96,8 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>Eco<em>Shot</em></h1>
-    <p class="sub">Sag es einfach, EcoShot drückt für dich ab.</p>
+    <h1>Echo<em>Shot</em></h1>
+    <p class="sub">Sag es einfach, EchoShot drückt für dich ab.</p>
   </header>
 
   <section class="finder" aria-label="Sucher">
@@ -239,9 +239,9 @@
 
   function savePhoto(blob, n){
     var file = null;
-    try{ file = new File([blob], 'ecoshot-' + n + '.jpg', { type:'image/jpeg' }); }catch(e){}
+    try{ file = new File([blob], 'echoshot-' + n + '.jpg', { type:'image/jpeg' }); }catch(e){}
     if (file && navigator.canShare && navigator.canShare({ files:[file] })){
-      navigator.share({ files:[file], title:'EcoShot Foto ' + n }).catch(function(err){
+      navigator.share({ files:[file], title:'EchoShot Foto ' + n }).catch(function(err){
         if (err && err.name !== 'AbortError') setStatus('Das Teilen hat nicht geklappt. Halte das Foto gedrückt und wähle „Zu Fotos hinzufügen“.');
       });
     } else {
@@ -402,7 +402,7 @@
       }
     });
     if (isIOS && standalone){
-      setStatus('Tipp: Vom Home-Bildschirm aus funktioniert Sprache auf dem iPhone oft nicht. Öffne EcoShot dann direkt in Safari.');
+      setStatus('Tipp: Vom Home-Bildschirm aus funktioniert Sprache auf dem iPhone oft nicht. Öffne EchoShot dann direkt in Safari.');
     }
   }
 
