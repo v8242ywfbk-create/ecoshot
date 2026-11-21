@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4fbf7">
+<title>EcoShot</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700&display=swap">
+<style>
+  :root{
+    --bg:#f4fbf7; --surface:#ffffff; --ink:#24402f; --muted:#6f8a7b; --line:#e2efe7;
+    --leaf:#3dad78; --leaf-soft:#dff5e9; --leaf-ink:#ffffff; --sun:#ffb64a;
+    --finder-a:#e3f6ec; --finder-b:#e6f1fc; --danger:#e2674f;
+    --shadow:0 10px 30px -14px rgba(36,64,47,.28);
+    --font-display:'Fredoka','Nunito',system-ui,sans-serif;
+    --font-body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#17261f; --surface:#203429; --ink:#e9f4ed; --muted:#9bb5a7; --line:#2f493a;
+      --leaf:#5fcb92; --leaf-soft:#27412f; --leaf-ink:#0f2218; --sun:#ffc766;
+      --finder-a:#1f3a2c; --finder-b:#1f3040; --danger:#f08c76;
+      --shadow:0 10px 30px -14px rgba(0,0,0,.6);
+      color-scheme:dark;
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body); font-size:16px; line-height:1.55;
+    padding:max(24px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(40px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  }
+  .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+  h1{font-family:var(--font-display);font-weight:600;font-size:2.2rem;margin:0;line-height:1.1}
+  h1 em{font-style:normal;color:var(--leaf)}
+  .sub{color:var(--muted);margin:2px 0 0}
+
+  .finder{position:relative;width:100%;aspect-ratio:3/4;border-radius:28px;overflow:hidden;box-shadow:var(--shadow);
+    background:linear-gradient(160deg,var(--finder-a),var(--finder-b));display:flex;align-items:center;justify-content:center}
+  video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  video.mirror{transform:scaleX(-1)}
+  .corner{position:absolute;width:30px;height:30px;border:3px solid #fff;opacity:.85;filter:drop-shadow(0 1px 3px rgba(0,0,0,.35))}
+  .c1{top:18px;left:18px;border-right:0;border-bottom:0;border-top-left-radius:14px}
+  .c2{top:18px;right:18px;border-left:0;border-bottom:0;border-top-right-radius:14px}
+  .c3{bottom:18px;left:18px;border-right:0;border-top:0;border-bottom-left-radius:14px}
+  .c4{bottom:18px;right:18px;border-left:0;border-top:0;border-bottom-right-radius:14px}
+  .ring{position:relative;width:min(52%,220px);aspect-ratio:1;background:rgba(255,255,255,.88);border-radius:50%;box-shadow:var(--shadow);opacity:0;transition:opacity .2s}
+  .ring.on{opacity:1}
+  .ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+  .ring .track{fill:none;stroke:#e2efe7;stroke-width:5}
+  .ring .arc{fill:none;stroke:#ffb64a;stroke-width:6;stroke-linecap:round;stroke-dasharray:339.29;stroke-dashoffset:339.29}
+  .ring .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:600;font-size:clamp(3rem,16vw,5rem);line-height:1;color:#24402f;font-variant-numeric:tabular-nums}
+  .ring .num small{font-family:var(--font-body);font-weight:600;font-size:.85rem;color:#6f8a7b;margin-top:4px}
+  .cam-msg{position:absolute;left:24px;right:24px;bottom:28px;text-align:center;color:var(--muted);margin:0;font-size:.95rem}
+  .flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+  .flash.on{animation:pop .45s ease-out}
+  @keyframes pop{0%{opacity:.9}100%{opacity:0}}
+  @media (prefers-reduced-motion: reduce){.flash.on{animation-duration:.01s}}
+  .switch{position:absolute;top:16px;right:16px;z-index:2;min-height:40px;padding:8px 14px;font-size:.85rem;background:rgba(255,255,255,.88);color:#24402f}
+
+  .panel{background:var(--surface);border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow)}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  button{font:inherit;font-weight:700;border-radius:999px;border:0;background:var(--leaf-soft);color:var(--ink);padding:12px 20px;cursor:pointer;min-height:46px}
+  button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+  button.primary{background:var(--leaf);color:var(--leaf-ink)}
+  button.mic{flex:1 1 220px;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--leaf);color:var(--leaf-ink)}
+  button.mic.live{background:var(--danger);color:#fff}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .dot{width:10px;height:10px;border-radius:50%;background:currentColor}
+  .mic.live .dot{animation:blink 1s infinite}
+  @keyframes blink{50%{opacity:.25}}
+  @media (prefers-reduced-motion: reduce){.mic.live .dot{animation:none}}
+  .heard{min-height:3.2em;background:var(--leaf-soft);border-radius:16px;padding:10px 14px}
+  .heard .label{display:block;font-size:.8rem;font-weight:700;color:var(--muted);margin-bottom:2px}
+  .heard .text{font-weight:600}
+  .heard .text.partial{color:var(--muted)}
+  .status{margin:0;color:var(--muted);min-height:1.5em}
+  form.cmd{display:flex;gap:10px;flex-wrap:wrap}
+  form.cmd input{flex:1 1 200px;min-width:0;font:inherit;font-size:16px;padding:12px 18px;border-radius:999px;border:2px solid var(--line);background:var(--bg);color:var(--ink);min-height:46px}
+  .chips-label{margin:0 0 -6px;color:var(--muted);font-size:.85rem;font-weight:600}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chips button{padding:8px 16px;min-height:38px;font-size:.9rem;font-weight:600}
+
+  h2{font-family:var(--font-display);font-weight:600;font-size:1.25rem;margin:0 0 10px}
+  .log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+  .log li{display:flex;gap:14px;align-items:center;border-radius:20px;padding:10px 14px;background:var(--surface);box-shadow:var(--shadow)}
+  .log img{flex:none;width:60px;height:80px;border-radius:12px;object-fit:cover;background:var(--finder-a)}
+  .log .meta{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+  .log .meta b{display:block}
+  .log .meta span{color:var(--muted);font-size:.88rem;overflow-wrap:anywhere}
+  .log .meta button{padding:6px 14px;min-height:36px;font-size:.88rem;background:var(--leaf);color:var(--leaf-ink)}
+  .empty,.note{color:var(--muted);margin:0}
+  .note{font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Eco<em>Shot</em></h1>
+    <p class="sub">Sag es einfach, EcoShot drückt für dich ab.</p>
+  </header>
+
+  <section class="finder" aria-label="Sucher">
+    <video id="video" autoplay playsinline muted></video>
+    <span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>
+    <button class="switch" id="switchBtn" type="button" hidden>Kamera wechseln</button>
+    <div class="ring" id="ring">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="track" cx="60" cy="60" r="54"></circle>
+        <circle class="arc" id="arc" cx="60" cy="60" r="54"></circle>
+      </svg>
+      <div class="num" aria-live="polite"><span id="numText">–</span><small id="numLabel">bereit</small></div>
+    </div>
+    <p class="cam-msg" id="camMsg">Tippe auf „Sprachsteuerung“, um die Kamera zu starten.</p>
+    <div class="flash" id="flash"></div>
+  </section>
+
+  <section class="panel" aria-label="Steuerung">
+    <div class="row">
+      <button class="mic" id="micBtn" type="button"><span class="dot"></span><span id="micLabel">Sprachsteuerung starten</span></button>
+      <button id="cancelBtn" type="button" disabled>Abbrechen</button>
+    </div>
+    <div class="heard">
+      <span class="label">Das habe ich verstanden</span>
+      <span class="text" id="heardText">Noch nichts, leg einfach los.</span>
+    </div>
+    <p class="status" id="status" role="status"></p>
+
+    <form class="cmd" id="cmdForm" autocomplete="off">
+      <input id="cmdInput" type="text" placeholder="Oder hier eintippen …" aria-label="Befehl eintippen">
+      <button class="primary" type="submit">Los</button>
+    </form>
+    <p class="chips-label">Schnell ausprobieren</p>
+    <div class="chips">
+      <button type="button" data-cmd="Mache ein Foto in 3 Sekunden">3 Sekunden</button>
+      <button type="button" data-cmd="Mache ein Foto in 5 Sekunden">5 Sekunden</button>
+      <button type="button" data-cmd="Mache ein Foto in zehn Sekunden">10 Sekunden</button>
+      <button type="button" data-cmd="Mache ein Foto">Sofort</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Deine Aufnahmen</h2>
+    <p class="empty" id="empty">Noch keine Aufnahme. Nach dem Countdown erscheint sie hier. Mit „In Fotos sichern“ legst du sie in deiner Fotos-App ab.</p>
+    <ul class="log" id="log"></ul>
+  </section>
+
+  <p class="note">Das kannst du sagen: „Mache ein Foto in 5 Sekunden“, „Foto in zehn Sekunden“, „Foto sofort“ oder „Stopp“ zum Abbrechen. Lass die Seite in Safari geöffnet und den Bildschirm an.</p>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var C = 339.29;
+  var video = $('video'), ring = $('ring'), arc = $('arc'), numText = $('numText'), numLabel = $('numLabel');
+  var camMsg = $('camMsg'), flash = $('flash'), micBtn = $('micBtn'), micLabel = $('micLabel'), cancelBtn = $('cancelBtn');
+  var switchBtn = $('switchBtn'), heardText = $('heardText'), statusEl = $('status'), logEl = $('log'), emptyEl = $('empty');
+  var cmdForm = $('cmdForm'), cmdInput = $('cmdInput');
+
+  var timerId = null, shots = 0, stream = null, facing = 'user', cameraReady = false, wakeLock = null;
+  var listening = false;
+
+  function setStatus(t){ statusEl.textContent = t || ''; }
+
+  /* ---------- Ton (iPhone verlangt eine Berührung zum Freischalten) ---------- */
+  var audioCtx = null;
+  function unlockAudio(){
+    try{
+      var AC = window.AudioContext || window.webkitAudioContext; if(!AC) return;
+      audioCtx = audioCtx || new AC();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }catch(e){}
+  }
+  function beep(freq, ms){
+    try{
+      if(!audioCtx) return;
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.frequency.value = freq; g.gain.value = 0.08;
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + ms/1000);
+    }catch(e){}
+  }
+
+  /* ---------- Bildschirm anlassen ---------- */
+  function keepAwake(){
+    try{
+      if (navigator.wakeLock && navigator.wakeLock.request){
+        navigator.wakeLock.request('screen').then(function(l){ wakeLock = l; }).catch(function(){});
+      }
+    }catch(e){}
+  }
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'visible' && listening) keepAwake();
+  });
+
+  /* ---------- Kamera ---------- */
+  function startCamera(){
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      camMsg.hidden = false;
+      camMsg.textContent = 'Kein Kamerazugriff. Öffne die Seite über HTTPS in Safari.';
+      return;
+    }
+    if (stream){ stream.getTracks().forEach(function(t){ t.stop(); }); }
+    navigator.mediaDevices.getUserMedia({ video:{ facingMode:facing, width:{ideal:1920}, height:{ideal:1440} }, audio:false })
+      .then(function(s){
+        stream = s; video.srcObject = s; cameraReady = true;
+        video.classList.toggle('mirror', facing === 'user');
+        var p = video.play(); if (p && p.catch) p.catch(function(){});
+        camMsg.hidden = true;
+        switchBtn.hidden = false;
+      })
+      .catch(function(){
+        cameraReady = false;
+        camMsg.hidden = false;
+        camMsg.textContent = 'Die Kamera ist nicht freigegeben. Öffne in Safari das Menü „aA“ → „Webseiteneinstellungen“ → Kamera → Erlauben, und lade neu.';
+      });
+  }
+  function ensureCamera(){ if (!cameraReady && !stream) startCamera(); }
+  switchBtn.addEventListener('click', function(){ facing = facing === 'user' ? 'environment' : 'user'; startCamera(); });
+
+  function takePhoto(cmd){
+    flash.classList.remove('on'); void flash.offsetWidth; flash.classList.add('on');
+    beep(1200, 160);
+    shots++;
+    var n = shots;
+    if (cameraReady && video.videoWidth){
+      var c = document.createElement('canvas');
+      c.width = video.videoWidth; c.height = video.videoHeight;
+      c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
+      c.toBlob(function(blob){ addLog(n, cmd, blob); }, 'image/jpeg', 0.92);
+      setStatus('Klick! Foto ' + n + ' ist im Kasten. Tippe auf „In Fotos sichern“.');
+    } else {
+      addLog(n, cmd, null);
+      setStatus('Ausgelöst, aber die Kamera liefert kein Bild. Prüfe die Freigabe.');
+    }
+    numText.textContent = '✓'; numLabel.textContent = 'Klick!'; arc.style.strokeDashoffset = 0;
+    setTimeout(function(){ if(!timerId) resetRing(); }, 1500);
+  }
+
+  function savePhoto(blob, n){
+    var file = null;
+    try{ file = new File([blob], 'ecoshot-' + n + '.jpg', { type:'image/jpeg' }); }catch(e){}
+    if (file && navigator.canShare && navigator.canShare({ files:[file] })){
+      navigator.share({ files:[file], title:'EcoShot Foto ' + n }).catch(function(err){
+        if (err && err.name !== 'AbortError') setStatus('Das Teilen hat nicht geklappt. Halte das Foto gedrückt und wähle „Zu Fotos hinzufügen“.');
+      });
+    } else {
+      setStatus('Halte das kleine Foto gedrückt und wähle „Zu Fotos hinzufügen“.');
+    }
+  }
+
+  function addLog(n, cmd, blob){
+    emptyEl.hidden = true;
+    var li = document.createElement('li');
+    var meta = document.createElement('div'); meta.className = 'meta';
+    var b = document.createElement('b'); b.textContent = 'Foto ' + n;
+    var s = document.createElement('span'); s.textContent = new Date().toLocaleTimeString('de-DE') + ' Uhr · ' + cmd;
+    meta.appendChild(b); meta.appendChild(s);
+    if (blob){
+      var url = URL.createObjectURL(blob);
+      var img = document.createElement('img'); img.src = url; img.alt = 'Foto ' + n;
+      li.appendChild(img);
+      var btn = document.createElement('button'); btn.type = 'button'; btn.textContent = 'In Fotos sichern';
+      btn.addEventListener('click', function(){ savePhoto(blob, n); });
+      meta.appendChild(btn);
+    }
+    li.appendChild(meta);
+    logEl.insertBefore(li, logEl.firstChild);
+  }
+
+  /* ---------- Countdown ---------- */
+  function resetRing(){
+    ring.classList.remove('on');
+    arc.style.strokeDashoffset = C;
+    numText.textContent = '–'; numLabel.textContent = 'bereit';
+    cancelBtn.disabled = true;
+  }
+  function stopTimer(){ if (timerId){ clearInterval(timerId); timerId = null; } }
+
+  function startCountdown(sec, cmd){
+    stopTimer();
+    ring.classList.add('on');
+    cancelBtn.disabled = false;
+    numLabel.textContent = 'Bitte lächeln';
+    var total = sec*1000, t0 = Date.now(), last = -1;
+    function tick(){
+      var el = Date.now() - t0, left = Math.max(0, total - el), shown = Math.ceil(left/1000);
+      arc.style.strokeDashoffset = C * (1 - Math.min(1, el/total));
+      if (shown !== last){ last = shown; numText.textContent = shown; if (shown > 0) beep(shown <= 3 ? 880 : 660, 70); }
+      if (left <= 0){ stopTimer(); cancelBtn.disabled = true; takePhoto(cmd); }
+    }
+    timerId = setInterval(tick, 100); tick();
+    setStatus('Alles klar, Foto in ' + sec + (sec === 1 ? ' Sekunde.' : ' Sekunden.'));
+  }
+  function cancel(){
+    if (!timerId) return;
+    stopTimer(); resetRing();
+    setStatus('Kein Problem, der Countdown ist abgebrochen.');
+  }
+
+  /* ---------- Befehle ---------- */
+  var NUM = {'null':0,'ein':1,'eins':1,'eine':1,'einer':1,'zwei':2,'drei':3,'vier':4,'fünf':5,'fuenf':5,'sechs':6,'sieben':7,'acht':8,'neun':9,'zehn':10,
+    'elf':11,'zwölf':12,'zwoelf':12,'fünfzehn':15,'zwanzig':20,'dreißig':30,'dreissig':30};
+  var KEYS = Object.keys(NUM).sort(function(a,b){ return b.length - a.length; });
+  var WORD_RE = new RegExp('(?:^|[^a-zäöüß])(' + KEYS.join('|') + ')\\s*(?:sekunde|sekunden|sek)(?![a-zäöüß])');
+  function parseSeconds(t){
+    var m = t.match(/(\d{1,2})\s*(?:sekunde|sekunden|sek)(?![a-zäöüß])/); if (m) return parseInt(m[1],10);
+    m = t.match(WORD_RE); if (m) return NUM[m[1]];
+    m = t.match(/\bin\s+(\d{1,2})\b/); if (m) return parseInt(m[1],10);
+    return null;
+  }
+  function handle(raw){
+    var text = (raw || '').trim(); if (!text) return;
+    heardText.textContent = '„' + text + '“'; heardText.classList.remove('partial');
+    var t = text.toLowerCase();
+    if (/\b(stopp|stop|abbrechen|abbruch)\b/.test(t)){ if (timerId) cancel(); else setStatus('Gerade läuft kein Countdown.'); return; }
+    if (!/(foto|bild|aufnahme|selfie|auslös|ausl[oö]s)/.test(t)){ setStatus('Das war kein Foto-Befehl. Versuch es mit „Mache ein Foto in 5 Sekunden“.'); return; }
+    var sec = parseSeconds(t);
+    if (sec === null || /sofort|jetzt/.test(t)){ stopTimer(); takePhoto(text); return; }
+    if (sec < 1 || sec > 60){ setStatus('Nenne mir bitte eine Dauer zwischen 1 und 60 Sekunden.'); return; }
+    startCountdown(sec, text);
+  }
+  cancelBtn.addEventListener('click', cancel);
+  cmdForm.addEventListener('submit', function(e){ e.preventDefault(); unlockAudio(); ensureCamera(); handle(cmdInput.value); cmdInput.value = ''; });
+  document.querySelectorAll('.chips button').forEach(function(b){
+    b.addEventListener('click', function(){ unlockAudio(); ensureCamera(); handle(b.getAttribute('data-cmd')); });
+  });
+
+  /* ---------- Spracherkennung (Web Speech API, Safari/Chrome) ---------- */
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var rec = null, restartTimer = null;
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var standalone = window.navigator.standalone === true;
+
+  function setMic(live){
+    micBtn.classList.toggle('live', live);
+    micLabel.textContent = live ? 'Ich höre zu … zum Stoppen tippen' : 'Sprachsteuerung starten';
+  }
+
+  function buildRecognizer(){
+    var r = new SR();
+    r.lang = 'de-DE';
+    r.continuous = !isIOS;      // Safari auf dem iPhone liefert im Dauermodus oft nichts
+    r.interimResults = true;
+    r.maxAlternatives = 1;
+    r.onresult = function(e){
+      var interim = '', finalText = '';
+      for (var i = e.resultIndex; i < e.results.length; i++){
+        var res = e.results[i];
+        if (res.isFinal) finalText += res[0].transcript;
+        else interim += res[0].transcript;
+      }
+      if (finalText){ handle(finalText); }
+      else if (interim){ heardText.textContent = interim; heardText.classList.add('partial'); }
+    };
+    r.onerror = function(e){
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed'){
+        listening = false; setMic(false);
+        setStatus('Mikrofon oder Spracherkennung ist nicht erlaubt. Prüfe in Safari „aA“ → Webseiteneinstellungen → Mikrofon, und in den iPhone-Einstellungen: Allgemein → Tastatur → Diktierfunktion aktivieren.');
+      } else if (e.error === 'audio-capture'){
+        listening = false; setMic(false);
+        setStatus('Es wurde kein Mikrofon gefunden.');
+      } else if (e.error === 'network'){
+        listening = false; setMic(false);
+        setStatus('Die Spracherkennung braucht eine Internetverbindung.');
+      }
+      /* no-speech und aborted: onend startet automatisch neu */
+    };
+    r.onend = function(){
+      if (!listening){ setMic(false); return; }
+      clearTimeout(restartTimer);
+      restartTimer = setTimeout(function(){
+        if (!listening) return;
+        try{ r.start(); }catch(err){}
+      }, 300);
+    };
+    return r;
+  }
+
+  if (!SR){
+    micBtn.disabled = true;
+    micLabel.textContent = 'Spracherkennung nicht verfügbar';
+    setStatus('Dieser Browser kann keine Sprache erkennen. Nutze Safari ab iOS 14.5 oder Chrome, oder tipp den Befehl ein.');
+  } else {
+    micBtn.addEventListener('click', function(){
+      unlockAudio();
+      if (listening){
+        listening = false; clearTimeout(restartTimer);
+        try{ rec.stop(); }catch(e){}
+        setMic(false);
+        setStatus('Sprachsteuerung ist aus.');
+        return;
+      }
+      ensureCamera();
+      keepAwake();
+      rec = buildRecognizer();
+      try{
+        rec.start(); listening = true; setMic(true);
+        setStatus('Ich höre zu. Sag: „Mache ein Foto in 5 Sekunden“.');
+      }catch(e){
+        setStatus('Die Spracherkennung konnte nicht starten. Tippe nochmal auf den Knopf.');
+      }
+    });
+    if (isIOS && standalone){
+      setStatus('Tipp: Vom Home-Bildschirm aus funktioniert Sprache auf dem iPhone oft nicht. Öffne EcoShot dann direkt in Safari.');
+    }
+  }
+
+  if (location.protocol === 'http:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1'){
+    setStatus('Kamera und Mikrofon brauchen HTTPS.');
+  }
+})();
+</script>
+</body>
+</html>
